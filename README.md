@@ -581,3 +581,16 @@ git 通过 `HEAD` 指针指向当前的所在的本地分支。
 
 使用 `git log --oneline --decorate` 查看各个分支当前所指的对象。
 
+```console
+$ git log --oneline --decorate
+70fb9cc (HEAD -> main, origin/main, dev_01) git branch
+9b4f5d7 update README
+5dbfa77 (tag: v1.0) update docs
+cef1a00 git pro book
+```
+
+**2, 分支切换**
+
+`git checkout  dev_01`
+
+![HEAD 指向当前所在的分支。](README.assets/head-to-testing.png)
