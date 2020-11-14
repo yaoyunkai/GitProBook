@@ -606,5 +606,19 @@ cef1a00 git pro book
 
 查看提交的分叉历史:
 
-`git log --oneline --decorate --gragh --all`
+```console
+$ git log --oneline --decorate --graph --all
+* dc6f37d (dev_02) crearte hello world 02
+| * 7250c71 (HEAD -> main) add hello world txt
+|/
+* bf7bb33 (origin/main) update README
+* c9b8723 (dev_01) update dev_01
+* 80e5820 checkout branch
+* 70fb9cc git branch
+* 9b4f5d7 update README
+* 5dbfa77 (tag: v1.0) update docs
+* cef1a00 git pro book
+```
+
+创建新的分支并切换到新的分支： `git checkout -b <new_branch>`
 
