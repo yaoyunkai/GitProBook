@@ -639,3 +639,48 @@ Git 将此次三方合并的结果做了一个新的快照并且自动创建一�
 **2，遇到冲突时的分支合并**
 
 如果你在两个不同的分支中，对同一个文件的同一个部分进行了不同的修改，Git 就没法干净的合并它们。
+
+### 3.3 分支管理 ###
+
+**1， 查看每个分支的最后一次提交**
+
+```console
+$ git branch -v
+  devlop 50cac7b [gone] conflict test
+* main   4810460 merge all
+```
+
+**2, 查看合并到当前分支的分支，或者没有**
+
+`git branch --merged --no-merged`
+
+### 3.5 远程分支 ###
+
+**1，获取远程引用的完整列表**
+
+```console
+$ git ls-remote origin
+48104600a5639eb25c5008a3ecd49b9f7910de9a        HEAD
+48104600a5639eb25c5008a3ecd49b9f7910de9a        refs/heads/main
+```
+
+使用 `git remote show <remote>` 获取远程分支的信息。
+
+远程跟踪分支是远程分支状态的引用。
+
+当第一次从远程克隆仓库时：
+
+![克隆之后的服务器与本地仓库。](README.assets/remote-branches-1.png)
+
+**2， 推送**
+
+```console
+$ git push origin serverfix
+Counting objects: 24, done.
+Delta compression using up to 8 threads.
+Compressing objects: 100% (15/15), done.
+Writing objects: 100% (24/24), 1.91 KiB | 0 bytes/s, done.
+Total 24 (delta 2), reused 0 (delta 0)
+To https://github.com/schacon/simplegit
+ * [new branch]      serverfix -> serverfix
+```
