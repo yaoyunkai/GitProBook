@@ -535,5 +535,15 @@ Git 支持两种标签：轻量标签（lightweight）与附注标签（annotate
 
 `git push origin <tagname>`
 
+`git push origin --tags`
 
+**4. 删除标签**
+
+删除本地标签： `git tag -d <tagname>`
+
+上述命令并不会从任何远程仓库移除标签: `git push <remote> :refs/tags/<tagname>`
+
+第二种删除远程标签的方式： `git push origin --delelte <tagname>`
+
+**5. 检出标签**
 
