@@ -547,3 +547,37 @@ Git 支持两种标签：轻量标签（lightweight）与附注标签（annotate
 
 **5. 检出标签**
 
+### 2.7 Git 别名 ###
+
+## 3. 分支 ##
+
+### 3.1 分支简介 ###
+
+首次提交产生的提交对象没有父对象，普通提交操作产生的提交对象有一个父对象， 而由多个分支合并产生的提交对象有多个父对象.
+
+Git 会先计算每一个子目录（本例中只有项目根目录）的校验和， 然后在 Git 仓库中将这些校验和保存为树对象。随后，Git 便会创建一个提交对象， 它除了包含上面提到的那些信息外，还包含指向这个树对象（项目根目录）的指针。
+
+第一次提交时：
+
+![首次提交对象及其树结构。](README.assets/commit-and-tree.png)
+
+以后的提交：
+
+![提交对象及其父对象。](README.assets/commits-and-parents.png)
+
+Git的分支在本质上仅是提交对象的可变指针。`master` 分支会在每次提交时自动向前移动。
+
+![分支及其提交历史。](README.assets/branch-and-history.png)
+
+**1，创建分支**
+
+`git branch <branch_name>` , 创建分支后会在提交对象上创建一个指针。
+
+![两个指向相同提交历史的分支。](README.assets/two-branches.png)
+
+git 通过 `HEAD` 指针指向当前的所在的本地分支。
+
+![HEAD 指向当前所在的分支。](README.assets/head-to-master.png)
+
+使用 `git log --oneline --decorate` 查看各个分支当前所指的对象。
+
