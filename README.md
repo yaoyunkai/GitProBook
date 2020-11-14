@@ -594,3 +594,13 @@ cef1a00 git pro book
 `git checkout  dev_01`
 
 ![HEAD 指向当前所在的分支。](README.assets/head-to-testing.png)
+
+```console
+$ git log --oneline --decorate
+80e5820 (HEAD -> dev_01) checkout branch
+70fb9cc (origin/main, main) git branch
+9b4f5d7 update README
+5dbfa77 (tag: v1.0) update docs
+cef1a00 git pro book
+```
+
