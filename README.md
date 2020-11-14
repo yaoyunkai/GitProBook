@@ -520,3 +520,20 @@ v1.8.5.3
 v1.8.5.4
 v1.8.5.5
 ```
+
+**2. 创建标签**
+
+Git 支持两种标签：轻量标签（lightweight）与附注标签（annotated）。
+
+- 附注标签: `git tag -a v1.4 -m "my version 1.4"`
+
+- 轻量标签：`git tag v1.4-w`
+
+- 后期打标签: `git tag -a v1.2 -m "message" sha1`
+
+**3. 共享标签**
+
+`git push origin <tagname>`
+
+
+
