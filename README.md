@@ -745,3 +745,19 @@ To https://github.com/schacon/simplegit
 **1, 变基的基本操作**
 
 ![分叉的提交历史。](README.assets/basic-rebase-1.png)
+
+首先找到这两个分支（即当前分支 `experiment`、变基操作的目标基底分支 `master`） 的最近共同祖先 `C2`，然后对比当前分支相对于该祖先的历次提交，提取相应的修改并存为临时文件， 然后将当前分支指向目标基底 `C3`, 最后以此将之前另存为临时文件的修改依序应用。 （译注：写明了 commit id，以便理解，下同）
+
+![将 `C4` 中的修改变基到 `C3` 上。](README.assets/basic-rebase-3.png)
+
+现在回到 `master` 分支，进行一次快进合并。
+
+```console
+$ git checkout master
+$ git merge experiment
+```
+
+![`master` 分支的快进合并。](README.assets/basic-rebase-4.png)
+
+变基是将一系列提交按照原有次序依次应用到另一分支上，而合并是把最终结果合在一起。
+
