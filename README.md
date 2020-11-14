@@ -742,3 +742,6 @@ To https://github.com/schacon/simplegit
 
 ### 3.6 变基 ###
 
+**1, 变基的基本操作**
+
+![分叉的提交历史。](README.assets/basic-rebase-1.png)
