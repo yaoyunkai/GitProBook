@@ -604,3 +604,7 @@ $ git log --oneline --decorate
 cef1a00 git pro book
 ```
 
+查看提交的分叉历史:
+
+`git log --oneline --decorate --gragh --all`
+
