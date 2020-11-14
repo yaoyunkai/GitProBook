@@ -622,3 +622,5 @@ $ git log --oneline --decorate --graph --all
 
 创建新的分支并切换到新的分支： `git checkout -b <new_branch>`
 
+### 3.2 分支的新建与合并 ###
+
