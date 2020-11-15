@@ -761,9 +761,62 @@ $ git merge experiment
 
 变基是将一系列提交按照原有次序依次应用到另一分支上，而合并是把最终结果合在一起。
 
-**2，变基的风险**
+## 7. Git Tool ##
 
-## 4. Git On Server ##
+### 7.1 选择修订版本 ###
 
-### 4.1 相关协议 ###
+**1, 缩短 SHA-1**
 
+```console
+$ git log --abbrev-commit --pretty=oneline
+ca82a6d changed the version number
+085bb3b removed unnecessary test code
+a11bef0 first commit
+```
+
+**2, 分支引用**
+
+引用特定提交的一种直接方法是，若它是一个分支的顶端的提交， 那么可以在任何需要引用该提交的 Git 命令中直接使用该分支的名称。
+
+```console
+$ git show ca82a6dff817ec66f44342007202690a93763949
+$ git show topic1
+```
+
+**3，引用日志**
+
+当你在工作时， Git 会在后台保存一个引用日志（reflog）， 引用日志记录了最近几个月你的 HEAD 和分支引用所指向的历史。
+
+```console
+$ git reflog -5
+5819638 (HEAD -> main, origin/main) HEAD@{0}: commit: finish command of f 'rebase'
+9a95f3b HEAD@{1}: commit: remove rebase test
+4828ad7 HEAD@{2}: merge server: Fast-forward
+e9abe77 HEAD@{3}: checkout: moving from server to main
+4828ad7 HEAD@{4}: rebase (finish): returning to refs/heads/server
+```
+
+**4, 提交区间**
+
+找出在一个分支而不再另一个分支中的提交, 比如：想要查看 experiment 分支中还有哪些提交尚未被合并入 master 分支。在后者中而不在前者中的提交内容：
+
+`git log master..experiment`
+
+`git log origin/master..HEAD`
+
+### 7.2 交互式暂存 ###
+
+运行 `git add` 时使用 `-i` 或者 `--interactive` 选项，Git 将会进入一个交互式终端模式，显示类似下面的东西：
+
+```console
+$ git add -i
+           staged     unstaged path
+  1:    unchanged        +0/-1 TODO
+  2:    unchanged        +1/-1 index.html
+  3:    unchanged        +5/-1 lib/simplegit.rb
+
+*** Commands ***
+  1: [s]tatus     2: [u]pdate      3: [r]evert     4: [a]dd untracked
+  5: [p]atch      6: [d]iff        7: [q]uit       8: [h]elp
+What now>
+```
