@@ -820,3 +820,82 @@ $ git add -i
   5: [p]atch      6: [d]iff        7: [q]uit       8: [h]elp
 What now>
 ```
+
+### 7.3 贮藏与清理 ###
+
+贮藏（stash）会处理工作目录的脏的状态——即跟踪文件的修改与暂存的改动——然后将未完成的修改保存到一个栈上， 而你可以在任何时候重新应用这些改动（甚至在不同的分支上）。
+
+此时，你可以切换分支并在其他地方工作；你的修改被存储在栈上。 要查看贮藏的东西，可以使用 `git stash list`：
+
+```console
+$ git stash list
+stash@{0}: WIP on master: 049d078 added the index file
+stash@{1}: WIP on master: c264051 Revert "added file_size"
+stash@{2}: WIP on master: 21d80a5 added number to log
+```
+
+### 7.5 搜索 ###
+
+默认情况下 `git grep` 会查找你工作目录的文件。 第一种变体是，你可以传递 `-n` 或 `--line-number` 选项数来输出 Git 找到的匹配行的行号。
+
+```console
+$ git grep -n gmtime_r
+compat/gmtime.c:3:#undef gmtime_r
+compat/gmtime.c:8:      return git_gmtime_r(timep, &result);
+compat/gmtime.c:11:struct tm *git_gmtime_r(const time_t *timep, struct tm *result)
+compat/gmtime.c:16:     ret = gmtime_r(timep, result);
+compat/mingw.c:826:struct tm *gmtime_r(const time_t *timep, struct tm *result)
+compat/mingw.h:206:struct tm *gmtime_r(const time_t *timep, struct tm *result);
+date.c:482:             if (gmtime_r(&now, &now_tm))
+date.c:545:             if (gmtime_r(&time, tm)) {
+date.c:758:             /* gmtime_r() in match_digit() may have clobbered it */
+git-compat-util.h:1138:struct tm *git_gmtime_r(const time_t *, struct tm *);
+git-compat-util.h:1140:#define gmtime_r git_gmtime_r
+```
+
+**Git 日志搜索**
+
+```console
+$ git log -S ZLIB_BUF_MAX --oneline
+e01503b zlib: allow feeding more than 4GB in one go
+ef49a7a zlib: zlib can only process 4GB at a time
+```
+
+例如，假设我们想查看 `zlib.c` 文件中`git_deflate_bound` 函数的每一次变更， 我们可以执行 `git log -L :git_deflate_bound:zlib.c`。 Git 会尝试找出这个函数的范围，然后查找历史记录，并且显示从函数创建之后一系列变更对应的补丁。
+
+```console
+$ git log -L :git_deflate_bound:zlib.c
+commit ef49a7a0126d64359c974b4b3b71d7ad42ee3bca
+Author: Junio C Hamano <gitster@pobox.com>
+Date:   Fri Jun 10 11:52:15 2011 -0700
+
+    zlib: zlib can only process 4GB at a time
+
+diff --git a/zlib.c b/zlib.c
+--- a/zlib.c
++++ b/zlib.c
+@@ -85,5 +130,5 @@
+-unsigned long git_deflate_bound(z_streamp strm, unsigned long size)
++unsigned long git_deflate_bound(git_zstream *strm, unsigned long size)
+ {
+-       return deflateBound(strm, size);
++       return deflateBound(&strm->z, size);
+ }
+
+
+commit 225a6f1068f71723a910e8565db4e252b3ca21fa
+Author: Junio C Hamano <gitster@pobox.com>
+Date:   Fri Jun 10 11:18:17 2011 -0700
+
+    zlib: wrap deflateBound() too
+
+diff --git a/zlib.c b/zlib.c
+--- a/zlib.c
++++ b/zlib.c
+@@ -81,0 +85,5 @@
++unsigned long git_deflate_bound(z_streamp strm, unsigned long size)
++{
++       return deflateBound(strm, size);
++}
++
+```
