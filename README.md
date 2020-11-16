@@ -922,3 +922,82 @@ diff --git a/zlib.c b/zlib.c
 
 `git branch <new_branch_name> <start point>` : 选择从当前分支的那次提交新建分支。
 
+### 7.7 重置解密 ###
+
+**1，三棵树**
+
+Git 作为一个系统，是以它的一般操作来管理并操纵这三棵树的：
+
+| 树                | 用途                                 |
+| :---------------- | :----------------------------------- |
+| HEAD              | 上一次提交的快照，下一次提交的父结点 |
+| Index             | 预期的下一次提交的快照               |
+| Working Directory | 沙盒                                 |
+
+**2， HEAD**
+
+HEAD 是当前分支引用的指针，它总是指向该分支上的最后一次提交。 这表示 HEAD 将是下一次提交的父结点。 通常，理解 HEAD 的最简方式，就是将它看做 **该分支上的最后一次提交** 的快照。
+
+```console
+$ git cat-file -p HEAD
+tree 4bb83ddc259849f91767b9b30d37ca0ca80f7724
+parent 12914fcc8b88e677556ea031dce196ad00d41bd1
+author liberty <1052433260@qq.com> 1605532398 +0800
+committer liberty <1052433260@qq.com> 1605532398 +0800
+
+update
+
+
+$ git ls-tree -r HEAD
+100644 blob c38fa4e005685a861be5fdbe8fcbb03f84a216b0    .gitignore
+100644 blob aa0e08c2c3faab0064a3ac0131c4c5bbb550b273    README.assets/4428238-fcad08ebe26933a6.png
+100644 blob ac68fc90acd448b3ad356834ae1edb69cd7ca2d1    README.assets/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTgwNDE0MjA1ODE2MTg4
+100644 blob da98fb034cff0ce960ed13983310b0ff1165bbf2    README.assets/areas.png
+100644 blob e1bcc27f65ef64a9129d7dd96961dd41ed075b79    README.assets/basic-merging-1.png
+100644 blob a2438266600134b3b6e8c01c94595e39c8c664a5    README.assets/basic-merging-2.png
+100644 blob 44ea49e3e5489c7be3414827c29b03a7fdb4fb94    README.assets/basic-rebase-1.png
+100644 blob a1afaef66f8e42e78f316793532ac0c7db933567    README.assets/basic-rebase-3.png
+100644 blob e97c1685f7a55d2c35e5a5f0997a06637fea3462    README.assets/basic-rebase-4.png
+100644 blob 2b4ab17e67bd0663f650c7e89cc542e92ee87619    README.assets/branch-and-history.png
+100644 blob 3ddf1cd5f9c1c29b1d2a09ebc78e4c8e3d2a70ee    README.assets/commit-and-tree.png
+100644 blob d563972662bf2c253a6e8e4650e73989c1860d02    README.assets/commits-and-parents.png
+100644 blob 86c7ae8583f9d5646cdb1e67c40073318e1e9e38    README.assets/head-to-master.png
+100644 blob 08352d608587b76dad10295129aaac477e252210    README.assets/head-to-testing.png
+100644 blob c538a3d276b9b80a38d6ec2c0e12f7910ef330fc    README.assets/image-20201113234439517.png
+100644 blob 5b665bdb91c0d1393eac0597a1e63c8a72200dac    README.assets/image-20201113234754426.png
+100644 blob 6bf52dbe9d60cc4cd1552cf45c6df3bab3aa2b51    README.assets/image-20201114000038841.png
+100644 blob 922b02c09110c7f6d9b90380c6e9a14b56cc84ef    README.assets/lifecycle.png
+100644 blob 759538f466d27981f1ff28cf4cbc4ee50b9b03e3    README.assets/remote-branches-1.png
+100644 blob aa6377a08dc3417e73d95a8f37b09ac08be3370f    README.assets/two-branches.png
+100644 blob b6f42244d7ef38c7caa2dea45efdf39654f0ebc2    README.md
+```
+
+**3, 索引**
+
+索引是你的 **预期的下一次提交**。 我们也会将这个概念引用为 Git 的“暂存区”，这就是当你运行 `git commit` 时 Git 看起来的样子。
+
+```console
+$ git ls-files -s
+100644 c38fa4e005685a861be5fdbe8fcbb03f84a216b0 0       .gitignore
+100644 aa0e08c2c3faab0064a3ac0131c4c5bbb550b273 0       README.assets/4428238-fcad08ebe26933a6.png
+100644 ac68fc90acd448b3ad356834ae1edb69cd7ca2d1 0       README.assets/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTgwNDE0MjA1ODE2MTg4
+100644 da98fb034cff0ce960ed13983310b0ff1165bbf2 0       README.assets/areas.png
+100644 e1bcc27f65ef64a9129d7dd96961dd41ed075b79 0       README.assets/basic-merging-1.png
+100644 a2438266600134b3b6e8c01c94595e39c8c664a5 0       README.assets/basic-merging-2.png
+100644 44ea49e3e5489c7be3414827c29b03a7fdb4fb94 0       README.assets/basic-rebase-1.png
+100644 a1afaef66f8e42e78f316793532ac0c7db933567 0       README.assets/basic-rebase-3.png
+100644 e97c1685f7a55d2c35e5a5f0997a06637fea3462 0       README.assets/basic-rebase-4.png
+100644 2b4ab17e67bd0663f650c7e89cc542e92ee87619 0       README.assets/branch-and-history.png
+100644 3ddf1cd5f9c1c29b1d2a09ebc78e4c8e3d2a70ee 0       README.assets/commit-and-tree.png
+100644 d563972662bf2c253a6e8e4650e73989c1860d02 0       README.assets/commits-and-parents.png
+100644 86c7ae8583f9d5646cdb1e67c40073318e1e9e38 0       README.assets/head-to-master.png
+100644 08352d608587b76dad10295129aaac477e252210 0       README.assets/head-to-testing.png
+100644 c538a3d276b9b80a38d6ec2c0e12f7910ef330fc 0       README.assets/image-20201113234439517.png
+100644 5b665bdb91c0d1393eac0597a1e63c8a72200dac 0       README.assets/image-20201113234754426.png
+100644 6bf52dbe9d60cc4cd1552cf45c6df3bab3aa2b51 0       README.assets/image-20201114000038841.png
+100644 922b02c09110c7f6d9b90380c6e9a14b56cc84ef 0       README.assets/lifecycle.png
+100644 759538f466d27981f1ff28cf4cbc4ee50b9b03e3 0       README.assets/remote-branches-1.png
+100644 aa6377a08dc3417e73d95a8f37b09ac08be3370f 0       README.assets/two-branches.png
+100644 b6f42244d7ef38c7caa2dea45efdf39654f0ebc2 0       README.md
+```
+
