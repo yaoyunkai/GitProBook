@@ -1036,3 +1036,276 @@ $ git blame -L 1,10 README.md
 
 ## 10. Git 内部原理 ##
 
+四个条目很重要：`HEAD` 文件、`index` 文件，和 `objects` 目录、`refs` 目录。 它们都是 Git 的核心组成部分。`objects` 目录存储所有数据内容；`refs` 目录存储指向数据（分支、远程仓库和标签等）的提交对象的指针； `HEAD` 文件指向目前被检出的分支；`index` 文件保存暂存区信息。
+
+### 10.2 Git对象 ###
+
+Git 的核心部分是一个简单的键值对数据库（key-value data store）。 你可以向 Git 仓库中插入任意类型的内容，它会返回一个唯一的键，通过该键可以在任意时刻再次取回该内容。
+
+```console
+$ git init
+Initialized empty Git repository in C:/Users/Liberty/Downloads/packages/git-demo/.git/
+
+$ find .git/objects/
+.git/objects/
+.git/objects/info
+.git/objects/pack
+
+$ find .git/objects/ -type f
+```
+
+用 `git hash-object` 创建一个新的数据对象并将它手动存入你的新 Git 数据库中。
+
+`git hash-object` 会接受你传给它的东西，而它只会返回可以存储在 Git 仓库中的唯一键。 `-w` 选项会指示该命令不要只返回键，还要将该对象写入数据库中。 最后，`--stdin` 选项则指示该命令从标准输入读取内容；若不指定此选项，则须在命令尾部给出待存储文件的路径。：
+
+```console
+$ echo 'test content' | git hash-object -w --stdin
+d670460b4b4aece5915caf5c68d12f560a9fe3e4
+
+$ find .git/objects/ -type f
+.git/objects/d6/70460b4b4aece5915caf5c68d12f560a9fe3e4
+```
+
+通过 `cat-file` 命令从 Git 那里取回数据。 这个命令简直就是一把剖析 Git 对象的瑞士军刀。 为 `cat-file` 指定 `-p` 选项可指示该命令自动判断内容的类型，并为我们显示大致的内容：
+
+```console
+$ git cat-file -p d670460b4b4aece5915caf5c68d12f560a9fe3e4
+test content
+```
+
+例如，可以对一个文件进行简单的版本控制。 
+
+```console
+$ echo 'version 1' > test.txt
+
+$ git hash-object -w test.txt
+83baae61804e65cc73a7201a7252750c76066a30
+
+$ echo 'version 2' > test.txt
+
+$ git hash-object -w test.txt
+1f7a7a472abf3dd9643fd615f6da379c4acb3e3a
+
+$ find .git/objects/ -type f
+.git/objects/1f/7a7a472abf3dd9643fd615f6da379c4acb3e3a
+.git/objects/83/baae61804e65cc73a7201a7252750c76066a30
+.git/objects/d6/70460b4b4aece5915caf5c68d12f560a9fe3e4
+```
+
+在这个（简单的版本控制）系统中，文件名并没有被保存——我们仅保存了文件的内容。
+
+上述类型的对象我们称之为 **数据对象（blob object）**。 利用 `git cat-file -t` 命令，可以让 Git 告诉我们其内部存储的任何对象类型，只要给定该对象的 SHA-1 值：
+
+```console
+$ git cat-file -t 1f7a7a472abf3dd9643fd615f6da379c4acb3e3a
+blob
+```
+
+**树对象**
+
+所有内容均以树对象和数据对象的形式存储，其中树对象对应了 UNIX 中的目录项，数据对象则大致上对应了 inodes 或文件内容。
+
+一个树对象包含了一条或多条树对象记录（tree entry），每条记录含有一个指向数据对象或者子树对象的 SHA-1 指针，以及相应的模式、类型、文件名信息。
+
+```console
+$ git cat-file -p main^{tree}
+100644 blob c38fa4e005685a861be5fdbe8fcbb03f84a216b0    .gitignore
+040000 tree 2551364ca989be7a955d68c6a8b4d87aab6d8656    README.assets
+100644 blob 203ed88ab16fefb83550e3d4c2c9eaaf086c6c4e    README.md
+
+$ git cat-file -p 2551364ca989be7a955d68c6a8b4d87aab6d8656
+100644 blob aa0e08c2c3faab0064a3ac0131c4c5bbb550b273    4428238-fcad08ebe26933a6.png
+100644 blob ac68fc90acd448b3ad356834ae1edb69cd7ca2d1    aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTgwNDE0MjA1ODE2MTg4
+100644 blob da98fb034cff0ce960ed13983310b0ff1165bbf2    areas.png
+100644 blob e1bcc27f65ef64a9129d7dd96961dd41ed075b79    basic-merging-1.png
+100644 blob a2438266600134b3b6e8c01c94595e39c8c664a5    basic-merging-2.png
+100644 blob 44ea49e3e5489c7be3414827c29b03a7fdb4fb94    basic-rebase-1.png
+100644 blob a1afaef66f8e42e78f316793532ac0c7db933567    basic-rebase-3.png
+100644 blob e97c1685f7a55d2c35e5a5f0997a06637fea3462    basic-rebase-4.png
+100644 blob 2b4ab17e67bd0663f650c7e89cc542e92ee87619    branch-and-history.png
+100644 blob 3ddf1cd5f9c1c29b1d2a09ebc78e4c8e3d2a70ee    commit-and-tree.png
+100644 blob d563972662bf2c253a6e8e4650e73989c1860d02    commits-and-parents.png
+100644 blob 86c7ae8583f9d5646cdb1e67c40073318e1e9e38    head-to-master.png
+100644 blob 08352d608587b76dad10295129aaac477e252210    head-to-testing.png
+100644 blob c538a3d276b9b80a38d6ec2c0e12f7910ef330fc    image-20201113234439517.png
+100644 blob 5b665bdb91c0d1393eac0597a1e63c8a72200dac    image-20201113234754426.png
+100644 blob 6bf52dbe9d60cc4cd1552cf45c6df3bab3aa2b51    image-20201114000038841.png
+100644 blob 922b02c09110c7f6d9b90380c6e9a14b56cc84ef    lifecycle.png
+100644 blob 759538f466d27981f1ff28cf4cbc4ee50b9b03e3    remote-branches-1.png
+100644 blob aa6377a08dc3417e73d95a8f37b09ac08be3370f    two-branches.png
+```
+
+![简化版的 Git 数据模型。](README.assets/data-model-1.png)
+
+通过底层命令 `git update-index` 为一个单独文件——我们的 test.txt 文件的首个版本——创建一个暂存区。 利用该命令，可以把 `test.txt` 文件的首个版本人为地加入一个新的暂存区。 必须为上述命令指定 `--add` 选项，因为此前该文件并不在暂存区中（我们甚至都还没来得及创建一个暂存区呢）； 同样必需的还有 `--cacheinfo` 选项，因为将要添加的文件位于 Git 数据库中，而不是位于当前目录下。 同时，需要指定文件模式、SHA-1 与文件名：
+
+```console
+$ git update-index --add --cacheinfo 100644 83baae61804e65cc73a7201a7252750c76066a30 test.txt
+```
+
+通过 `git write-tree` 命令将暂存区内容写入一个树对象。
+
+```console
+$ git write-tree
+d8329fc1cc938780ffdd9f94e0d364e0ea74f579
+
+$ git cat-file -p d8329fc1cc938780ffdd9f94e0d364e0ea74f579
+100644 blob 83baae61804e65cc73a7201a7252750c76066a30    test.txt
+
+$ git cat-file -t d8329fc1cc938780ffdd9f94e0d364e0ea74f579
+tree
+```
+
+创建一个新的树对象，它包括 `test.txt` 文件的第二个版本，以及一个新的文件：
+
+```console
+$ echo 'new file' > new.txt
+
+$ git update-index --add --cacheinfo 100644 1f7a7a472abf3dd9643fd615f6da379c4acb3e3a test.txt
+
+$ git update-index --add new.txt
+
+$ git write-tree
+0155eb4229851634a0f03eb265b69f5a2d56f341
+
+$ git cat-file -p 0155eb4229851634a0f03eb265b69f5a2d56f341
+100644 blob fa49b077972391ad58037050f2a75f74e3671e92    new.txt
+100644 blob 1f7a7a472abf3dd9643fd615f6da379c4acb3e3a    test.txt
+
+$ git read-tree --prefix=bak d8329fc1cc938780ffdd9f94e0d364e0ea74f579
+
+$ git write-tree
+3c4e9cd789d88d8d89c1073707c3585e41b0e614
+
+$ git cat-file -p 3c4e9cd789d88d8d89c1073707c3585e41b0e614
+040000 tree d8329fc1cc938780ffdd9f94e0d364e0ea74f579    bak
+100644 blob fa49b077972391ad58037050f2a75f74e3671e92    new.txt
+100644 blob 1f7a7a472abf3dd9643fd615f6da379c4acb3e3a    test.txt
+```
+
+基于这个新的树对象创建一个工作目录，你会发现工作目录的根目录包含两个文件以及一个名为 `bak` 的子目录，该子目录包含 `test.txt` 文件的第一个版本。 可以认为 Git 内部存储着的用于表示上述结构的数据是这样的：
+
+![当前 Git 的数据内容结构。](README.assets/data-model-2.png)
+
+**提交对象**
+
+若想重用这些快照，你必须记住所有三个 SHA-1 哈希值。 并且，你也完全不知道是谁保存了这些快照，在什么时刻保存的，以及为什么保存这些快照。 而以上这些，正是提交对象（commit object）能为你保存的基本信息。
+
+```console
+$ echo "first commit" | git commit-tree d8329fc1cc938780ffd
+7f6c234d851dba54eec82e3aa8739c34ae26ee4f
+
+$ git cat-file -p 7f6c234d85
+tree d8329fc1cc938780ffdd9f94e0d364e0ea74f579
+author liberty <xxxxxxxx@qq.com> 1605540656 +0800
+committer liberty <xxxxxxxxx@qq.com> 1605540656 +0800
+
+first commit
+```
+
+提交对象的格式很简单：它先指定一个顶层树对象，代表当前项目快照； 然后是可能存在的父提交（前面描述的提交对象并不存在任何父提交）； 之后是作者/提交者信息（依据你的 `user.name` 和 `user.email` 配置来设定，外加一个时间戳）； 留空一行，最后是提交注释。
+
+```console
+$ echo 'second commit' | git commit-tree 0155eb422 -p 7f6c234d8
+aa6d23d2460edd33bb16b81f8a747ef1dafcff77
+
+$ echo 'third commit' | git commit-tree 3c4e9cd78 -p aa6d23d24
+7e95cd929502e67d01ca82dcb736d201f88090b8
+
+$ git log --stat 7e95cd9295
+commit 7e95cd929502e67d01ca82dcb736d201f88090b8
+Author: liberty <1052433260@qq.com>
+Date:   Mon Nov 16 23:35:52 2020 +0800
+
+    third commit
+
+ bak/test.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+commit aa6d23d2460edd33bb16b81f8a747ef1dafcff77
+Author: liberty <1052433260@qq.com>
+Date:   Mon Nov 16 23:35:02 2020 +0800
+
+    second commit
+
+ new.txt  | 1 +
+ test.txt | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+commit 7f6c234d851dba54eec82e3aa8739c34ae26ee4f
+Author: liberty <1052433260@qq.com>
+Date:   Mon Nov 16 23:30:56 2020 +0800
+
+    first commit
+
+ test.txt | 1 +
+ 1 file changed, 1 insertion(+)
+```
+
+ 这三种主要的 Git 对象——数据对象、树对象、提交对象——最初均以单独文件的形式保存在 `.git/objects` 目录下。 下面列出了目前示例目录内的所有对象，辅以各自所保存内容的注释：
+
+```console
+$ find .git/objects/ -type f
+.git/objects/01/55eb4229851634a0f03eb265b69f5a2d56f341
+.git/objects/1f/7a7a472abf3dd9643fd615f6da379c4acb3e3a
+.git/objects/3c/4e9cd789d88d8d89c1073707c3585e41b0e614
+.git/objects/7e/95cd929502e67d01ca82dcb736d201f88090b8
+.git/objects/7f/6c234d851dba54eec82e3aa8739c34ae26ee4f
+.git/objects/83/baae61804e65cc73a7201a7252750c76066a30
+.git/objects/aa/6d23d2460edd33bb16b81f8a747ef1dafcff77
+.git/objects/d6/70460b4b4aece5915caf5c68d12f560a9fe3e4
+.git/objects/d8/329fc1cc938780ffdd9f94e0d364e0ea74f579
+.git/objects/fa/49b077972391ad58037050f2a75f74e3671e92
+```
+
+![你的 Git 目录下所有可达的对象。](README.assets/data-model-3.png)
+
+**对象存储**
+
+向 Git 仓库提交的所有对象都会有个头部信息一并被保存。
+
+Git 首先会以识别出的对象的类型作为开头来构造一个头部信息，本例中是一个“blob”字符串。 接着 Git 会在头部的第一部分添加一个空格，随后是数据内容的字节数，最后是一个空字节（null byte）：
+
+```console
+>> header = "blob #{content.length}\0"
+=> "blob 16\u0000"
+```
+
+Git 会将上述头部信息和原始数据拼接起来，并计算出这条新内容的 SHA-1 校验和。 在 Ruby 中可以这样计算 SHA-1 值——先通过 `require` 命令导入 SHA-1 digest 库， 然后对目标字符串调用 `Digest::SHA1.hexdigest()`：
+
+```console
+>> store = header + content
+=> "blob 16\u0000what is up, doc?"
+>> require 'digest/sha1'
+=> true
+>> sha1 = Digest::SHA1.hexdigest(store)
+=> "bd9dbf5aae1a3862dd1526723246b20206e5fc37"
+```
+
+我们来比较一下 `git hash-object` 的输出。 这里使用了 `echo -n` 以避免在输出中添加换行。
+
+```console
+$ echo -n "what is up, doc?" | git hash-object --stdin
+bd9dbf5aae1a3862dd1526723246b20206e5fc37
+```
+
+Git 会通过 zlib 压缩这条新内容。在 Ruby 中可以借助 zlib 库做到这一点。 先导入相应的库，然后对目标内容调用 `Zlib::Deflate.deflate()`：
+
+```console
+>> require 'zlib'
+=> true
+>> zlib_content = Zlib::Deflate.deflate(store)
+=> "x\x9CK\xCA\xC9OR04c(\xCFH,Q\xC8,V(-\xD0QH\xC9O\xB6\a\x00_\x1C\a\x9D"
+```
+
+最后，需要将这条经由 zlib 压缩的内容写入磁盘上的某个对象。 要先确定待写入对象的路径（SHA-1 值的前两个字符作为子目录名称，后 38 个字符则作为子目录内文件的名称）。
+
+我们用 `git cat-file` 查看一下该对象的内容：
+
+```console
+---
+$ git cat-file -p bd9dbf5aae1a3862dd1526723246b20206e5fc37
+what is up, doc?
+---
+```
+
