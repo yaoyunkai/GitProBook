@@ -906,8 +906,6 @@ diff --git a/zlib.c b/zlib.c
 
 `git commit --amend` or `git commit --amend --no-edit`
 
-2, 使用 reset revert checkout
-
 **2, git reset**
 
 `git reset` 有三种模式：soft mixed hard
@@ -915,5 +913,12 @@ diff --git a/zlib.c b/zlib.c
 ![img](README.assets/4428238-fcad08ebe26933a6.png)
 
 - **HARD** : 会重置HEAD指针，并且会重置 index 和 工作目录里的内容，stage区和工作目录里的内容会被完全重置为和**HEAD**的新位置相同的内容。
-- 
+
+**3，checkout**
+
+**4, revert**
+
+![img](README.assets/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTgwNDE0MjA1ODE2MTg4)
+
+`git branch <new_branch_name> <start point>` : 选择从当前分支的那次提交新建分支。
 
