@@ -914,6 +914,12 @@ diff --git a/zlib.c b/zlib.c
 
 - **HARD** : 会重置HEAD指针，并且会重置 index 和 工作目录里的内容，stage区和工作目录里的内容会被完全重置为和**HEAD**的新位置相同的内容。
 
+`reset` 命令会以特定的顺序重写这三棵树，在你指定以下选项时停止：
+
+1. 移动 HEAD 分支的指向 *（若指定了 `--soft`，则到此停止）*
+2. 使索引看起来像 HEAD *（若未指定 `--hard`，则到此停止）*
+3. 使工作目录看起来像索引
+
 **3，checkout**
 
 **4, revert**
@@ -1000,4 +1006,31 @@ $ git ls-files -s
 100644 aa6377a08dc3417e73d95a8f37b09ac08be3370f 0       README.assets/two-branches.png
 100644 b6f42244d7ef38c7caa2dea45efdf39654f0ebc2 0       README.md
 ```
+
+### 7.8 高级合并 ###
+
+https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E9%AB%98%E7%BA%A7%E5%90%88%E5%B9%B6
+
+### 7.10 使用Git调试 ###
+
+**1，文件标注**
+
+以下示例用 `git blame` 确定了 Linux 内核源码顶层的 `Makefile` 中每一行分别来自哪个提交和提交者， 此外用 `-L` 选项还可以将标注的输出限制为该文件中的第 69 行到第 82 行。
+
+```console
+$ git blame -L 1,10 README.md
+^cef1a00 (liberty 2020-11-14 14:55:57 +0800  1) Git Pro Book
+^cef1a00 (liberty 2020-11-14 14:55:57 +0800  2) =====
+^cef1a00 (liberty 2020-11-14 14:55:57 +0800  3)
+^cef1a00 (liberty 2020-11-14 14:55:57 +0800  4) ## 1. Start ##
+^cef1a00 (liberty 2020-11-14 14:55:57 +0800  5)
+^cef1a00 (liberty 2020-11-14 14:55:57 +0800  6) ### 1.3 What is Git ###
+^cef1a00 (liberty 2020-11-14 14:55:57 +0800  7)
+^cef1a00 (liberty 2020-11-14 14:55:57 +0800  8) **Git 保证完整性**
+^cef1a00 (liberty 2020-11-14 14:55:57 +0800  9)
+^cef1a00 (liberty 2020-11-14 14:55:57 +0800 10) Git 中所有的数据在存储前都计算校验和，然后以校验和来引用。 这意味着不可能在 Git 不
+知情时更改任何文件内容或目录内容。 这个功能建构在 Git 底层，是构成 Git 哲学不可或缺的部分。
+```
+
+### 7.11 子模块 ###
 
