@@ -899,3 +899,21 @@ diff --git a/zlib.c b/zlib.c
 +}
 +
 ```
+
+### 7.6 重写历史 ###
+
+**1，修改最后一次提交**
+
+`git commit --amend` or `git commit --amend --no-edit`
+
+2, 使用 reset revert checkout
+
+**2, git reset**
+
+`git reset` 有三种模式：soft mixed hard
+
+![img](README.assets/4428238-fcad08ebe26933a6.png)
+
+- **HARD** : 会重置HEAD指针，并且会重置 index 和 工作目录里的内容，stage区和工作目录里的内容会被完全重置为和**HEAD**的新位置相同的内容。
+- 
+
