@@ -1558,3 +1558,134 @@ chain length = 3: 2 objects
 .git/objects/pack/pack-3400157f48ee4d73fab0814a153bf2bf9d88d60f.pack: ok
 ```
 
+### 10.5 引用规范 ###
+
+添加一个远程仓库:
+
+```console
+$ git remote add origin https://github.com/schacon/simplegit-progit
+```
+
+运行上述命令会在你仓库中的 `.git/config` 文件中添加一个小节， 并在其中指定远程版本库的名称（`origin`）、URL 和一个用于获取操作的 **引用规范（refspec）**：
+
+```ini
+[remote "origin"]
+	url = https://github.com/schacon/simplegit-progit
+	fetch = +refs/heads/*:refs/remotes/origin/*
+```
+
+引用规范的格式由一个可选的 `+` 号和紧随其后的 `<src>:<dst>` 组成， 其中 `<src>` 是一个模式（pattern），代表远程版本库中的引用； `<dst>` 是本地跟踪的远程引用的位置。 `+` 号告诉 Git 即使在不能快进的情况下也要（强制）更新引用。
+
+如果服务器上有一个 `master` 分支，你可以在本地通过下面任意一种方式来访问该分支上的提交记录：
+
+```console
+$ git log origin/master
+$ git log remotes/origin/master
+$ git log refs/remotes/origin/master
+```
+
+如果想让 Git 每次只拉取远程的 `master` 分支，而不是所有分支， 可以把（引用规范的）获取那一行修改为只引用该分支：
+
+```
+fetch = +refs/heads/master:refs/remotes/origin/master
+```
+
+### 10.6 传输协议 ###
+
+### 10.7 维护和数据恢复 ###
+
+**1，维护**
+
+大约需要 7000 个以上的松散对象或超过 50 个的包文件才能让 Git 启动一次真正的 gc 命令。 可以通过修改 `gc.auto` 与 `gc.autopacklimit` 的设置来改动这些数值。
+
+`gc` 将会做的另一件事是打包你的引用到一个单独的文件。 假设你的仓库包含以下分支与标签：
+
+```console
+$ find .git/refs -type f
+.git/refs/heads/experiment
+.git/refs/heads/master
+.git/refs/tags/v1.0
+.git/refs/tags/v1.1
+```
+
+如果你执行了 `git gc` 命令，`refs` 目录中将不会再有这些文件。 为了保证效率 Git 会将它们移动到名为 `.git/packed-refs` 的文件中，就像这样：
+
+```console
+$ cat .git/packed-refs
+# pack-refs with: peeled fully-peeled
+cac0cab538b970a37ea1e769cbbde608743bc96d refs/heads/experiment
+ab1afef80fac8e34258ff41fc1b867c702daa24b refs/heads/master
+cac0cab538b970a37ea1e769cbbde608743bc96d refs/tags/v1.0
+9585191f37f7b0fb9444f35a9bf50de191beadc2 refs/tags/v1.1
+^1a410efbd13591db07496601ebc7a059dd55cfe9
+```
+
+**2，数据恢复**
+
+硬重置你的测试仓库中的 `master` 分支到一个旧的提交，以此来恢复丢失的提交。
+
+1，在有引用日志的情况下，使用一个名叫 `git reflog` 的工具。 当你正在工作时，Git 会默默地记录每一次你改变 HEAD 时它的值。 每一次你提交或改变分支，引用日志都会被更新。 
+
+2，没有引用日志的情况下：使用 `git fsck` 实用工具，将会检查数据库的完整性。 如果使用一个 `--full` 选项运行它，它会向你显示出所有没有被其他对象指向的对象。
+
+```console
+$ git fsck --full
+Checking object directories: 100% (256/256), done.
+Checking objects: 100% (18/18), done.
+dangling blob d670460b4b4aece5915caf5c68d12f560a9fe3e4
+dangling commit ab1afef80fac8e34258ff41fc1b867c702daa24b
+dangling tree aea790b9a58f6cf6f2804eeac9f0abbe9631e4c9
+dangling blob 7108f7ecb345ee9d0084193f147cdad4d2998293
+```
+
+**3，移除对象**
+
+1，使用 `git count-objects -v` 查看占用的空间大小。
+
+2，找出大文件，(查看blob文件中的content-length)。
+
+```console
+$ git gc
+Enumerating objects: 223, done.
+Counting objects: 100% (223/223), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (137/137), done.
+Writing objects: 100% (223/223), done.
+Total 223 (delta 77), reused 215 (delta 74), pack-reused 0
+
+$ find .git/objects -type f
+.git/objects/06/0e14d1169c41e7fbe8d581db4f568648ba793f
+.git/objects/46/b478dd54111c240b09cdc5744b46e92f34d86b
+.git/objects/56/b0f6bd1cfc366ab00107041f2e19dfcfb8df52
+.git/objects/75/71021d8c416a72510edef34d7ec82297ef2648
+.git/objects/aa/411f214466ea9ae46b95469c025795285f57dc
+.git/objects/b2/046200aad4dac3cc132b1a56bd3847108197d4
+.git/objects/c4/7c7b7df309fd062fef244b45c083914fb420ec
+.git/objects/fe/c290a1fe16841b02578d3254d72056380f402f
+.git/objects/info/commit-graph
+.git/objects/info/packs
+.git/objects/pack/pack-9daff5688ba3e2c78fb7d2b5bbf1d1e5fed54387.idx
+.git/objects/pack/pack-9daff5688ba3e2c78fb7d2b5bbf1d1e5fed54387.pack
+
+$ git verify-pack -v .git/objects/pack/pack-9daff5688ba3e2c78fb7d2b5bbf1d1e5fed54387.idx | sort -k 3 -n | tail -3
+c538a3d276b9b80a38d6ec2c0e12f7910ef330fc blob   32966 27822 245767
+5b665bdb91c0d1393eac0597a1e63c8a72200dac blob   42854 39257 273589
+ca44084d17cbbb9009b9570e38448e153d51c9c1 blob   66774 24910 370304
+
+$ git rev-list --objects --all | grep ca44084d17cbbb90  找出数据对象的名字
+ca44084d17cbbb9009b9570e38448e153d51c9c1 README.md
+
+$ git log --oneline --branches -- README.md
+39d3b27 (HEAD -> main, origin/main) git: 包文件
+b316a0b Git 内部原理: Git Object
+140b615 update README.md
+1b358cb update
+8ea9452 update
+dcbfaea update
+080685c add file
+1e7cb2b update
+9442332 update
+5819638 finish command of f 'rebase'
+64605fc update
+```
+
