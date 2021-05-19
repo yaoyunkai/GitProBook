@@ -179,11 +179,11 @@ $ git blame -L 1,2 file1.txt
 
 五个对象：三个 *blob* 对象（保存着文件快照）、一个 **树** 对象 （记录着目录结构和 blob 对象索引）以及一个 **提交** 对象（包含着指向前述树对象的指针和所有提交信息）。
 
-![首次提交对象及其树结构。](.assert/commit-and-tree.png)
+![首次提交对象及其树结构。](.assets/commit-and-tree.png)
 
 Git 的分支，其实本质上仅仅是指向提交对象的可变指针。 Git 的默认分支名字是 `master`。 在多次提交操作之后，你其实已经有一个指向最后那个提交对象的 `master` 分支。 `master` 分支会在每次提交时自动向前移动。
 
-![分支及其提交历史。](.assert/branch-and-history.png)
+![分支及其提交历史。](.assets/branch-and-history.png)
 
 ### 分支的创建 ###
 
@@ -191,11 +191,11 @@ Git 的分支，其实本质上仅仅是指向提交对象的可变指针。 Git
 
 当执行该命令时，git会在当前的提交对象上创建一个指针，指向该提交对象。
 
-![两个指向相同提交历史的分支。](.assert/two-branches.png)
+![两个指向相同提交历史的分支。](.assets/two-branches.png)
 
 那么，Git 又是怎么知道当前在哪一个分支上呢？ 也很简单，它有一个名为 `HEAD` 的特殊指针。 请注意它和许多其它版本控制系统（如 Subversion 或 CVS）里的 `HEAD` 概念完全不同。 在 Git 中，它是一个指针，指向当前所在的本地分支（译注：将 `HEAD` 想象为当前分支的别名）。 
 
-![HEAD 指向当前所在的分支。](.assert/head-to-master.png)
+![HEAD 指向当前所在的分支。](.assets/head-to-master.png)
 
 使用 `git log` 命令查看各个分支当前所指的对象。 
 
@@ -247,13 +247,13 @@ Fast-forward
 
 2.另一种种情况下，你的开发历史从一个更早的地方开始**分叉开来（diverged）**。 因为，`master` 分支所在提交并不是 `iss53` 分支所在提交的直接祖先，Git 不得不做一些额外的工作。 出现这种情况的时候，Git 会使用两个分支的末端所指的快照（`C4` 和 `C5`）以及这两个分支的公共祖先（`C2`），做一个简单的三方合并。
 
-![一次典型合并中所用到的三个快照。](.assert/basic-merging-1.png)
+![一次典型合并中所用到的三个快照。](.assets/basic-merging-1.png)
 
 Figure 24. 一次典型合并中所用到的三个快照
 
 和之前将分支指针向前推进所不同的是，Git 将此次三方合并的结果做了一个新的快照并且自动创建一个新的提交指向它。 这个被称作一次合并提交，它的特别之处在于他有不止一个父提交。
 
-![一个合并提交。](.assert/basic-merging-2.png)
+![一个合并提交。](.assets/basic-merging-2.png)
 
 **冲突问题**：如果你在两个不同的分支中，对同一个文件的同一个部分进行了不同的修改，Git 就没法干净的合并它们。 
 
@@ -287,7 +287,7 @@ $ git branch --no-merged
 
 **远程跟踪分支是远程分支状态的引用**。它们是你**无法移动的本地引用**。一旦你进行了网络通信， Git 就会为你移动它们以精确反映远程仓库的状态。请将它们看做书签， 这样可以提醒你该分支在远程仓库中的位置就是你**最后一次连接到它们的位置**。以 `remote/branch` 的形式命名。
 
-![克隆之后的服务器与本地仓库。](.assert/remote-branches-1.png)
+![克隆之后的服务器与本地仓库。](.assets/remote-branches-1.png)
 
 ```shell
 Liberty@LAPTOP-P85CKKBA MINGW64 ~/Downloads/packages/timeline-20210414/git-demo (master)
@@ -351,7 +351,7 @@ Branch 'dev1' set up to track remote branch 'dev1' from 'origin'.
 
 ### 分支变基 rebase ###
 
-![分叉的提交历史。](.assert/basic-rebase-1.png)
+![分叉的提交历史。](.assets/basic-rebase-1.png)
 
 其实，还有一种方法：你可以提取在 `C4` 中引入的补丁和修改，然后在 `C3` 的基础上应用一次。 在 Git 中，这种操作就叫做 **变基（rebase）**。 你可以使用 `rebase` 命令将提交到某一分支上的所有修改都移至另一分支上，就好像“重新播放”一样。
 
@@ -366,7 +366,7 @@ Applying: added staged command
 
 它的原理是首先找到这两个分支（即当前分支 `experiment`、变基操作的目标基底分支 `master`） 的最近共同祖先 `C2`，然后对比当前分支相对于该祖先的历次提交，提取相应的修改并存为临时文件， 然后将当前分支指向目标基底 `C3`, 最后以此将之前另存为临时文件的修改依序应用。 （译注：写明了 commit id，以便理解，下同）
 
-![将 `C4` 中的修改变基到 `C3` 上。](.assert/basic-rebase-3.png)
+![将 `C4` 中的修改变基到 `C3` 上。](.assets/basic-rebase-3.png)
 
 现在回到 `master` 分支，进行一次快进合并。
 
@@ -375,7 +375,7 @@ $ git checkout master
 $ git merge experiment
 ```
 
-![`master` 分支的快进合并。](.assert/basic-rebase-4.png)
+![`master` 分支的快进合并。](.assets/basic-rebase-4.png)
 
 ## 3. git 工具 ##
 
@@ -687,7 +687,7 @@ $ git ls-tree -r HEAD
 
 经典的 Git 工作流程是通过操纵这三个区域来以更加连续的状态记录项目快照的。
 
-![reset workflow](.assert/reset-workflow.png)
+![reset workflow](.assets/reset-workflow.png)
 
 **soft**
 
@@ -786,7 +786,7 @@ HEAD is now at c83fdda v3
 
 `git checkout master` : 仅移动HEAD的指向，让其指向master
 
-![reset checkout](.assert/reset-checkout.png)
+![reset checkout](.assets/reset-checkout.png)
 
 `git checkout <file_path>` 用该次提交中的内容来更新索引，更新工作区。
 
@@ -800,7 +800,7 @@ HEAD is now at c83fdda v3
 
 当使用 `git init` 初始化目录时，列出 `.git` 目录的结构
 
-![image-20210415222030153](.assert/image-20210415222030153.png)
+![image-20210415222030153](.assets/image-20210415222030153.png)
 
 - description: GitWeb 使用
 - config: 包含特有的配置文件
@@ -849,7 +849,7 @@ Git 以一种类似于 UNIX 文件系统的方式存储内容，但作了些许�
 
 一个树对象包含了一条或多条树对象记录（tree entry），每条记录含有一个指向数据对象或者子树对象的 SHA-1 指针，以及相应的模式、类型、文件名信息。
 
-<img src=".assert/data-model-1.png" alt="简化版的 Git 数据模型。" style="zoom:50%;" />
+<img src=".assets/data-model-1.png" alt="简化版的 Git 数据模型。" style="zoom:50%;" />
 
 通过 `git update-index` **创建一个暂存区**
 
@@ -934,7 +934,7 @@ $ git cat-file -p 3c4e9cd789d88d
 100644 blob 1f7a7a472abf3dd9643fd615f6da379c4acb3e3a    test.txt
 ```
 
-<img src=".assert/data-model-2.png" alt="当前 Git 的数据内容结构。" style="zoom: 67%;" />
+<img src=".assets/data-model-2.png" alt="当前 Git 的数据内容结构。" style="zoom: 67%;" />
 
 #### >>>>>> 提交对象 ####
 
@@ -1005,7 +1005,7 @@ Date:   Fri Apr 16 21:07:52 2021 +0800
 
 如果跟踪所有的内部指针，将得到一个类似下面的对象关系图：
 
-<img src=".assert/data-model-3.png" alt="你的 Git 目录下所有可达的对象。" style="zoom:67%;" />
+<img src=".assets/data-model-3.png" alt="你的 Git 目录下所有可达的对象。" style="zoom:67%;" />
 
 #### 对象存储 ####
 
@@ -1017,7 +1017,7 @@ Sha-1 是通过头部内容+实际内容拼接在一起计算SHA-1得出。
 
 然后实际存储的内容是：zlib 压缩之后的数据
 
-<img src=".assert/image-20210416212944193.png" alt="image-20210416212944193" style="zoom:67%;" />
+<img src=".assets/image-20210416212944193.png" alt="image-20210416212944193" style="zoom:67%;" />
 
 ### Git 引用 ###
 
@@ -1050,7 +1050,7 @@ $ git log --pretty=oneline test
 0742688a09afd8824304ea14f21245b164ef3243 first commit
 ```
 
-<img src=".assert/data-model-4.png" alt="包含分支引用的 Git 目录对象。" style="zoom:67%;" />
+<img src=".assets/data-model-4.png" alt="包含分支引用的 Git 目录对象。" style="zoom:67%;" />
 
 当运行类似于 `git branch <branch>` 这样的命令时，Git 实际上会运行 `update-ref` 命令， 取得当前所在分支最新提交对应的 SHA-1 值，并将其加入你想要创建的任何新引用中。
 
