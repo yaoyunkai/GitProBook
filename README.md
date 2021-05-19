@@ -910,7 +910,7 @@ diff --git a/zlib.c b/zlib.c
 
 `git reset` 有三种模式：soft mixed hard
 
-![img](.assets/4428238-fcad08ebe26933a6.png)
+<img src=".assets/4428238-fcad08ebe26933a6.png" alt="img" style="zoom:67%;" />
 
 - **HARD** : 会重置HEAD指针，并且会重置 index 和 工作目录里的内容，stage区和工作目录里的内容会被完全重置为和**HEAD**的新位置相同的内容。
 
